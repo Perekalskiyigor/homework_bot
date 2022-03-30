@@ -149,7 +149,8 @@ def parse_status(homework):
         error_message = 'Нет сообщения о статусе'
         logger.error(error_message)
         raise logging.exception.StatusException(error_message)
-    return f'Изменился статус проверки работы "{homework_name}".{homework_statuses}'
+    return (f'Изменился статус проверки '
+            f'работы "{homework_name}".{homework_statuses}')
 
 
 # тестирование parse_status
