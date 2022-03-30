@@ -43,7 +43,7 @@ TELEGRAM_CHAT_ID = os.getenv('CHAT_ID')
 RETRY_TIME = 600
 
 
-HOMEWORK_STATUSES = {
+HOMEWORK_VERDICTES = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -144,13 +144,13 @@ def parse_status(homework):
         error_message = f'В словаре нет ключа status {error}'
         logger.error(error_message)
         raise KeyError(error_message)
-    homework_statuses = HOMEWORK_STATUSES[homework_status]
-    if homework_statuses is None:
+    verdict = HOMEWORK_VERDICTES[homework_status]
+    if verdict is None:
         error_message = 'Нет сообщения о статусе'
         logger.error(error_message)
         raise logging.exception.StatusException(error_message)
     return (f'Изменился статус проверки '
-            f'работы "{homework_name}".{homework_statuses}')
+            f'работы "{homework_name}".{verdict}')
 
 
 # тестирование parse_status
@@ -162,14 +162,10 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка переменных окружения."""
-    if PRACTICUM_TOKEN == "":
-        result = True
-    elif TELEGRAM_TOKEN == "":
-        result = True
-    elif TELEGRAM_CHAT_ID != 0 and type(TELEGRAM_CHAT_ID) == int:
-        result = True
-    else:
-        result = False
+    item_list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    result = (all(item is not None for item in item_list))
+    # print ([item != "" for item in item_list])
+    if result is not True:
         logger.critical('Нет токенов!')
     return result
 
@@ -181,7 +177,7 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     check_token = check_tokens()  # проверяем токены
-    if check_token is True:
+    if check_token is not True:
         raise KeyError('Похерелись все токены, надо проверить')
     bot = Bot(token=TELEGRAM_TOKEN)  # создаем экземпляр бота
     # current_timestamp = int(time.time())
