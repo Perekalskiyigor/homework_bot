@@ -36,19 +36,11 @@ logger.addHandler(handler)
 
 # Теперь переменная TOKEN, описанная в файле .env,
 # доступна в пространстве переменных окружения
-TOKEN = os.getenv('TOKEN')
-TOKEN_BOT = os.getenv('TOKEN_BOT')
 URL = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-
-
 PRACTICUM_TOKEN = os.getenv('TOKEN')
-TELEGRAM_TOKEN = os.getenv('TOKEN_BOT')
-TELEGRAM_CHAT_ID = 297299087
-
-# RETRY_TIME = 600
-RETRY_TIME = 10  # тест, менее 10 мин
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('CHAT_ID')
+RETRY_TIME = 600
 
 
 HOMEWORK_STATUSES = {
@@ -57,7 +49,7 @@ HOMEWORK_STATUSES = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-# bot = Bot(token=TOKEN_BOT) # создан для пробы send_message
+# bot = Bot(token=TELEGRAM_TOKEN) # создан для пробы send_message
 
 
 def send_message(bot, message):
@@ -87,7 +79,7 @@ def get_api_answer(current_timestamp):
     """
     timestamp = current_timestamp or int(time.time())
     # Делаем GET-запрос к эндпоинту url с заголовком headers и параметрами par
-    headers = {'Authorization': f'OAuth {TOKEN}'}
+    headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     params = {'from_date': timestamp}
     try:
         homework_statuses = requests.get(URL, headers=headers, params=params)
@@ -152,12 +144,12 @@ def parse_status(homework):
         error_message = f'В словаре нет ключа status {error}'
         logger.error(error_message)
         raise KeyError(error_message)
-    verdict = HOMEWORK_STATUSES[homework_status]
-    if verdict is None:
+    homework_statuses = HOMEWORK_STATUSES[homework_status]
+    if homework_statuses is None:
         error_message = 'Нет сообщения о статусе'
         logger.error(error_message)
         raise logging.exception.StatusException(error_message)
-    return f'Изменился статус проверки работы "{homework_name}".{verdict}'
+    return f'Изменился статус проверки работы "{homework_name}".{homework_statuses}'
 
 
 # тестирование parse_status
@@ -188,9 +180,9 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     check_token = check_tokens()  # проверяем токены
-    if check_token is not True:
+    if check_token is True:
         raise KeyError('Похерелись все токены, надо проверить')
-    bot = Bot(token=TOKEN_BOT)  # создаем экземпляр бота
+    bot = Bot(token=TELEGRAM_TOKEN)  # создаем экземпляр бота
     # current_timestamp = int(time.time())
     current_timestamp = 1646162259
     last_status = ""  # храним прошлый статус
